@@ -6,6 +6,7 @@ function Connexion() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -13,28 +14,40 @@ function Connexion() {
   setErrorMsg("");
 
   try {
-    const res = await fetch("http://127.0.0.1:5000/connexion", {  // ⬅️ même URL que backend
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
+      const res = await fetch("http://127.0.0.1:5000/connexion", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
 
-    const data = await res.json();
+      const data = await res.json();
 
-    if (!res.ok) {
-      setErrorMsg(data.error);
-      return;
+      if (!res.ok) {
+        setErrorMsg(data.error);
+        return;
+      }
+
+      alert(" Connexion réussie !");
+      console.log("Données reçues:", data);
+
+      
+      if (data.user.admin) {
+       
+        console.log("Redirection vers /admin");
+        navigate("/admin", { state: { user: data.user } });
+      } else {
+        // Si c'est un utilisateur normal
+        console.log("Redirection vers /dash");
+        navigate("/dash", { state: { user: data.user } });
+      }
+
+    } catch (error) {
+      console.error("Erreur serveur :", error);
+      setErrorMsg("Impossible de se connecter au serveur");
+    } finally {
+      setLoading(false);
     }
-
-    alert("✅ Connexion réussie !");
-    console.log("Redirection vers /dashboard avec :", data.user); // 👈 ajoute ça
-
-    navigate("/dash", { state: { user: data.user } });
-  } catch (error) {
-    console.error("Erreur serveur :", error);
-    setErrorMsg("Impossible de se connecter au serveur");
-  }
-};
+  };
 
   return (
  <div className=' border bg-white   px-15 py-15  '>
@@ -60,11 +73,14 @@ connexion
         </div>
         
         <div className='text-center py-2'>
-           <button type="submit" className='border rounded-md bg-black text-white py-3 px-4' > envoyer</button>
+           <button type="submit" className='border rounded-md bg-black text-white py-3 px-4'  disabled={loading} > 
+           {loading ? "Connexion..." : "Se connecter"}</button>
         </div>
         </form>
         <div className='text-center'>
       <Link to="/login" className="mx-2 text-blue-600 ">Inscription</Link>
+
+      <Link to="/passemot" className="mx-2 text-blue-600 ">Mot de passe oublié ?</Link>
       </div>
         </div>
 
@@ -73,7 +89,7 @@ connexion
         
   )}
   export default Connexion;
-
+       
 
 
 
